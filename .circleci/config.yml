@@ -2,12 +2,12 @@ version: 2.1
 jobs:
   deploy:
     docker:
-      - image: circleci/node:14
+      - image: circleci/node:16
     steps:
       - checkout
       - run:
           name: Install Railway CLI
-          command: npm install -g railway
+          command: sudo npm install -g railway
       - run:
           name: Railway Login
           command: echo $RAILWAY_TOKEN | railway login --token
