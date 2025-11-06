@@ -20,7 +20,51 @@ jobs:
       - run:
           name: Debug Railway environment (non-sensitive)
           command: |
+            # muestra si la variable existe (CircleCI enmascara el valor)
             env | grep -i RAILWAY || true
+            # prueba rápida del CLI (no falla el job si hay error)
+            npx --yes @railway/cli whoami || true
+      - run:
+          name: Deploy to Railway App (using npx)
+          command: |
+            cd bankchurn-api
+            npx --yes @railway/cli up --service=gleaming-generosity --detach
+
+workflows:
+  version: 1
+  deploy_pipeline:
+    jobs:
+      - deploy_app_to_railway:
+          filters:
+            branches:
+              only:
+                - main
+EOFcat > .circleci/config.yml <<'EOF'
+version: '2.1'
+orbs:
+  node: circleci/node@5.1.0
+
+defaults: &defaults
+  docker:
+    - image: cimg/python:3.10
+  working_directory: ~/project
+
+jobs:
+  deploy_app_to_railway:
+    <<: *defaults
+    steps:
+      - checkout:
+          path: ~/project/
+      - node/install:
+          node-version: '20.9'
+      - run: node --version
+      - run: npm --version
+      - run:
+          name: Debug Railway environment (non-sensitive)
+          command: |
+            # muestra si la variable existe (CircleCI enmascara el valor)
+            env | grep -i RAILWAY || true
+            # prueba rápida del CLI (no falla el job si hay error)
             npx --yes @railway/cli whoami || true
       - run:
           name: Deploy to Railway App (using npx)
