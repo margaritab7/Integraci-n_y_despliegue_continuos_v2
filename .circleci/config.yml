@@ -23,15 +23,21 @@ jobs:
           path: ~/project/
       - node/install:
           node-version: '20.9'
-      - run: node --version 
-      - run: npm i -g @railway/cli
+      - run: node --version
+      - run: npm --version
       - run:
-          name: Deploy to Railway App
+          name: Debug Railway environment (non-sensitive)
+          command: |
+            # show whether RAILWAY_TOKEN is present (CircleCI masks values)
+            env | grep -i RAILWAY || true
+            # try running whoami via npx to verify the CLI runs
+            npx --yes @railway/cli whoami || true
+      - run:
+          name: Deploy to Railway App (using npx)
           command: |
             cd bankchurn-api
-            railway up --service=gleaming-generosity
-            railway up --detach
-
+            # Use RAILWAY_SERVICE if set in CircleCI; fallback to gleaming-generosity
+            npx --yes @railway/cli up --service="${RAILWAY_SERVICE:-gleaming-generosity}" --detach
 
 tags_only: &tags_only
   filters:
