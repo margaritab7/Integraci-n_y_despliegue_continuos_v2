@@ -1,51 +1,21 @@
-version: '2.1'
-orbs:
-  node: circleci/node@5.1.0
-
-defaults: &defaults
-  docker:
-    - image: cimg/python:3.10
-  working_directory: ~/project
-
-prepare_venv: &prepare_venv
-  run:
-    name: Create venv
-    command: |
-      python -m venv venv
-      source venv/bin/activate
-      pip install --upgrade pip
-
+version: 2.1
 jobs:
-  deploy_app_to_railway:
-    <<: *defaults
+  deploy:
+    docker:
+      - image: circleci/node:14
     steps:
-      - checkout:
-          path: ~/project/
-      - node/install:
-          node-version: '20.9'
-      - run: node --version 
-      - run: npm i -g @railway/cli
+      - checkout
       - run:
-          name: Deploy to Railway App
-          command: |
-            cd bankchurn-api
-            railway up --service=gleaming-generosity
-            railway up --detach
-
-
-tags_only: &tags_only
-  filters:
-    branches:
-      ignore: /.*/
-    tags:
-      only: /^.*/
-
+          name: Install Railway CLI
+          command: npm install -g railway
+      - run:
+          name: Railway Login
+          command: echo $RAILWAY_TOKEN | railway login --token
+      - run:
+          name: Deploy to Railway
+          command: railway up
 workflows:
-  version: 1
-  deploy_pipeline:
+  version: 2
+  deploy:
     jobs:
-      - deploy_app_to_railway:
-          filters:
-            branches:
-              only:
-                - main
+      - deploy
