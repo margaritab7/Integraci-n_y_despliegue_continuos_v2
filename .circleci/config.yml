@@ -7,14 +7,6 @@ defaults: &defaults
     - image: cimg/python:3.10
   working_directory: ~/project
 
-prepare_venv: &prepare_venv
-  run:
-    name: Create venv
-    command: |
-      python -m venv venv
-      source venv/bin/activate
-      pip install --upgrade pip
-
 jobs:
   deploy_app_to_railway:
     <<: *defaults
@@ -28,23 +20,13 @@ jobs:
       - run:
           name: Debug Railway environment (non-sensitive)
           command: |
-            # show whether RAILWAY_TOKEN is present (CircleCI masks values)
             env | grep -i RAILWAY || true
-            # try running whoami via npx to verify the CLI runs
             npx --yes @railway/cli whoami || true
       - run:
           name: Deploy to Railway App (using npx)
           command: |
             cd bankchurn-api
-            # Use RAILWAY_SERVICE if set in CircleCI; fallback to gleaming-generosity
-            npx --yes @railway/cli up --service="${RAILWAY_SERVICE:-gleaming-generosity}" --detach
-
-tags_only: &tags_only
-  filters:
-    branches:
-      ignore: /.*/
-    tags:
-      only: /^.*/
+            npx --yes @railway/cli up --service=gleaming-generosity --detach
 
 workflows:
   version: 1
